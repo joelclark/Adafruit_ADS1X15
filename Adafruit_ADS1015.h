@@ -1,11 +1,15 @@
 /**************************************************************************/
 /*!
     @file     Adafruit_ADS1015.h
-    @author   K. Townsend (Adafruit Industries)
+    @author   K.Townsend (Adafruit Industries), joelclark, soligen2010, others
     @license  BSD (see license.txt)
 
-    This is a library for the Adafruit ADS1015 breakout board
-    ----> https://www.adafruit.com/products/???
+    Driver for the ADS1015/ADS1115 ADC
+
+    This is a library for the Adafruit ADS1115 breakout
+    ----> https://www.adafruit.com/product/1085
+
+    Some code merged from: https://github.com/soligen2010/Adafruit_ADS1X15/
 
     Adafruit invests time and resources providing this open source code,
     please support Adafruit and open-source hardware by purchasing
@@ -13,8 +17,9 @@
 
     @section  HISTORY
 
-    v1.0  - First release
-    v1.1  - Added ADS1115 support - W. Earl
+    v1.0 - First release
+    v1.1 - Added ADS1115 support - W. Earl
+    v2.0 - Library repurposed for brewing firmware by joelclark
 */
 /**************************************************************************/
 
@@ -107,6 +112,24 @@
     #define ADS1015_REG_CONFIG_CQUE_NONE    (0x0003)  // Disable the comparator and put ALERT/RDY in high state (default)
 /*=========================================================================*/
 
+/*=========================================================================
+    GAIN VOLTAGES
+    -----------------------------------------------------------------------*/
+    #define ADS1115_VOLTS_PER_BIT_GAIN_TWOTHIRDS   0.0001875F
+    #define ADS1115_VOLTS_PER_BIT_GAIN_ONE         0.000125F  
+    #define ADS1115_VOLTS_PER_BIT_GAIN_TWO         0.0000625F  
+    #define ADS1115_VOLTS_PER_BIT_GAIN_FOUR        0.00003125F   
+    #define ADS1115_VOLTS_PER_BIT_GAIN_EIGHT       0.000015625F  
+    #define ADS1115_VOLTS_PER_BIT_GAIN_SIXTEEN     0.0000078125F 
+
+    #define ADS1015_VOLTS_PER_BIT_GAIN_TWOTHIRDS   0.003F
+    #define ADS1015_VOLTS_PER_BIT_GAIN_ONE         0.002F 
+    #define ADS1015_VOLTS_PER_BIT_GAIN_TWO         0.001F  
+    #define ADS1015_VOLTS_PER_BIT_GAIN_FOUR        0.0005F   
+    #define ADS1015_VOLTS_PER_BIT_GAIN_EIGHT       0.00025F  
+    #define ADS1015_VOLTS_PER_BIT_GAIN_SIXTEEN     0.000125F 
+/*=========================================================================*/
+
 typedef enum
 {
   GAIN_TWOTHIRDS    = ADS1015_REG_CONFIG_PGA_6_144V,
@@ -119,32 +142,28 @@ typedef enum
 
 class Adafruit_ADS1015
 {
+
 protected:
-   // Instance-specific properties
+
    uint8_t   m_i2cAddress;
    uint8_t   m_conversionDelay;
    uint8_t   m_bitShift;
-   adsGain_t m_gain;
 
- public:
+public:
+  
   Adafruit_ADS1015(uint8_t i2cAddress = ADS1015_ADDRESS);
-  void begin(void);
-  uint16_t  readADC_SingleEnded(uint8_t channel);
-  int16_t   readADC_Differential_0_1(void);
-  int16_t   readADC_Differential_2_3(void);
-  void      startComparator_SingleEnded(uint8_t channel, int16_t threshold);
-  int16_t   getLastConversionResults();
-  void      setGain(adsGain_t gain);
-  adsGain_t getGain(void);
 
- private:
+  void      begin(void);
+  void      startReadADC_SingleEnded(uint8_t channel, adsGain_t gain);
+  void      waitForConversion();
+  uint8_t   getConversionDelay();
+  int16_t   getLastConversionResults();
+  
 };
 
 // Derive from ADS1105 & override construction to set properties
 class Adafruit_ADS1115 : public Adafruit_ADS1015
 {
- public:
+public:
   Adafruit_ADS1115(uint8_t i2cAddress = ADS1015_ADDRESS);
-
- private:
 };
